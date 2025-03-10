@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استعلام سجلات الطلاب - رمضان 1446</title>
+    <style>
+        body {
+            font-family: Arial, Tahoma, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2e7d32;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1b5e20;
+        }
+        .status {
+            margin: 15px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .loading {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f8e9;
+        }
+        .hidden {
+            display: none;
+        }
+        .cell-header {
+            background-color: #e8f5e9;
+            font-weight: bold;
+            font-size: 0.85em;
+            min-height: 60px;
+            white-space: pre-wrap;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .excel-value {
+            font-family: "Courier New", monospace;
+            direction: ltr;
+            text-align: center;
+        }
+        .centered {
+            text-align: center;
+        }
+        .absent {
+            color: #c62828;
+            font-weight: bold;
+        }
+        .present {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #fff;
+            background-color: #2e7d32;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 16px;
+            display: inline-block;
+        }
+        .day-title {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #1b5e20;
+            background-color: #e8f5e9;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .student-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background-color: #fff;
+        }
+        .student-header {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .student-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .student-id {
+            font-weight: bold;
+            color: #555;
+        }
+        .data-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .subsection {
+            margin-top: 10px;
+            padding-right: 15px;
+        }
+        #lastUpdate {
+            text-align: center;
+            color: #555;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 4px solid #2e7d32;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>استعلام سجلات الطلاب - رمضان 1446</h1>
+        
+        <!-- لوحة المعلومات -->
+        <div class="form-group">
+            <div id="loadingMessage" class="status loading">
+                جاري تحميل البيانات من Google Sheets...
+                <div class="loader"></div>
+            </div>
+            <div id="errorMessage" class="status error hidden"></div>
+            <div id="successMessage" class="status success hidden"></div>
+            <div id="lastUpdate" class="hidden"></div>
+        </div>
+        
+        <!-- قسم البحث -->
+        <div id="searchSection" class="hidden">
+            <div class="form-group">
+                <label for="searchInput">أدخل الرقم التسلسلي:</label>
+                <input type="text" id="searchInput" placeholder="أدخل الرقم التسلسلي للبحث...">
+            </div>
+            
+            <button id="searchButton">بحث</button>
+            <button id="refreshButton" class="hidden" style="margin-top: 10px; background-color: #1976d2;">تحديث البيانات</button>
+        </div>
+        
+        <!-- نتائج البحث -->
+        <div id="searchResults" class="hidden">
+            <h2>نتائج البحث</h2>
+            <div id="resultsCount"></div>
+            <div id="resultsContainer"></div>
+        </div>
+    </div>
+    
+    <!-- Google Sheets API -->
+    <script src="https://apis.google.com/js/api.js"></script>
+    
+    <script>
+        // === الإعدادات ===
+        // يجب تعديل هذه القيم بناءً على ملف Google Sheets الخاص بك
+        const SPREADSHEET_ID = '1uiTIu4Gvr5MCQORICOcu2B5YZjVeEEYuyB4DkjdYQrQ'; // معرّف ملف Google Sheets
+        const API_KEY = 'AIzaSyBebsrj_Yg2_y5IEUEaYMpKJcKaG-sNB_Y'; // مفتاح API الخاص بك
+        const SHEET_NAME = 'الطلاب'; // اسم ورقة العمل (يمكن تغييره حسب اسم الورقة في ملفك)
+        
+        // === متغيرات عامة ===
+        let rawData = [];        // البيانات الأصلية
+        let headerRows = [];     // صفوف العنوان (أول 3 صفوف)
+        let dataRows = [];       // صفوف البيانات (بعد أول 3 صفوف)
+        let columnsPerRow = [];  // توزيع الأعمدة على الصفوف
+        
+        // === عناصر واجهة المستخدم ===
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const lastUpdate = document.getElementById('lastUpdate');
+        const searchSection = document.getElementById('searchSection');
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const refreshButton = document.getElementById('refreshButton');
+        const searchResults = document.getElementById('searchResults');
+        const resultsCount = document.getElementById('resultsCount');
+        const resultsContainer = document.getElementById('resultsContainer');
+        
+        // === تهيئة الصفحة ===
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        // === أحداث ===
+        searchButton.addEventListener('click', handleSearch);
+        refreshButton.addEventListener('click', fetchDataFromGoogleSheets);
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+        
+        // === تهيئة التطبيق ===
+        function initApp() {
+            // تحميل Google Sheets API
+            gapi.load('client', initGoogleSheetsAPI);
+        }
+        
+        // === تهيئة Google Sheets API ===
+        function initGoogleSheetsAPI() {
+            gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+            }).then(() => {
+                // بعد تهيئة API، قم بتحميل البيانات
+                fetchDataFromGoogleSheets();
+            }).catch(error => {
+                showError('حدث خطأ في تهيئة Google Sheets API: ' + error.message);
+            });
+        }
+        
+        // === جلب البيانات من Google Sheets ===
+        function fetchDataFromGoogleSheets() {
+            showLoading(true);
+            hideError();
+            hideSuccess();
+            
+            // طلب بيانات ورقة العمل
+            gapi.client.sheets.spreadsheets.values.get({
+                spreadsheetId: SPREADSHEET_ID,
+                range: SHEET_NAME,
+            }).then(response => {
+                // معالجة البيانات المستلمة
+                processSheetData(response.result.values);
+                
+                // تحديد توزيع الأعمدة
+                setupColumnDistribution();
+                
+                // إظهار رسالة نجاح وقسم البحث
+                showSuccess(`تم تحميل ${dataRows.length} سجل من Google Sheets بنجاح`);
+                showLastUpdate();
+                searchSection.classList.remove('hidden');
+                refreshButton.classList.remove('hidden');
+                
+                // إخفاء رسالة التحميل
+                showLoading(false);
+            }).catch(error => {
+                showError('حدث خطأ في جلب البيانات: ' + error.message);
+                showLoading(false);
+            });
+        }
+        
+        // === معالجة بيانات ورقة العمل ===
+        function processSheetData(values) {
+            if (!values || values.length === 0) {
+                throw new Error('لا توجد بيانات في ورقة العمل');
+            }
+            
+            // مسح البيانات السابقة
+            rawData = [];
+            headerRows = [];
+            dataRows = [];
+            
+            // تخزين البيانات الخام
+            rawData = values;
+            
+            // فصل صفوف العنوان (أول 3 صفوف) وصفوف البيانات
+            if (rawData.length >= 3) {
+                headerRows = rawData.slice(0, 3);
+                dataRows = rawData.slice(3);
+            } else if (rawData.length > 0) {
+                // إذا كان هناك أقل من 3 صفوف، نستخدم ما هو متاح كعناوين
+                headerRows = rawData.slice(0, rawData.length - 1);
+                dataRows = rawData.slice(rawData.length - 1);
+            }
+            
+            console.log('صفوف العنوان:', headerRows);
+            console.log('تم استخراج', dataRows.length, 'صف من البيانات');
+        }
+        
+        // === تحديد توزيع الأعمدة على الصفوف ===
+        function setupColumnDistribution() {
+            columnsPerRow = [];
+            
+            // تحديد المجموعات بناءً على طول البيانات
+            const totalColumns = headerRows.length > 0 ? headerRows[0].length : 0;
+            
+            // البيانات الشخصية - مقسمة إلى صفين كل صف 8 خلايا
+            columnsPerRow.push({ 
+                title: 'البيانات الشخصية',
+                groups: [
+                    { start: 1, end: 8, title: 'الصف الأول' },
+                    { start: 9, end: 16, title: 'الصف الثاني' }
+                ]
+            });
+            
+            // الإحصائيات الإجمالية - آخر 8 خلايا
+            const statsStart = Math.max(17, totalColumns - 8);
+            columnsPerRow.push({ 
+                title: 'الإحصائيات الإجمالية',
+                groups: [
+                    { start: statsStart, end: totalColumns - 1 }
+                ]
+            });
+            
+            // الإنجاز اليومي - المنتصف
+            if (statsStart > 17) {
+                // تقسيم الإنجاز اليومي إلى مجموعات من 7 خلايا
+                const dailyColumns = statsStart - 17;
+                const numDays = Math.ceil(dailyColumns / 7);
+                
+                const dailyGroups = [];
+                
+                for (let i = 0; i < numDays; i++) {
+                    const start = 17 + (i * 7);
+                    const end = Math.min(start + 6, statsStart - 1);
+                    
+                    let title = '';
+                    if (i === numDays - 1) {
+                        title = 'الاختبار';
+                    } else {
+                        title = `اليوم ${toArabicNumerals(i + 1)}`;
+                    }
+                    
+                    dailyGroups.push({ start, end, title });
+                }
+                
+                columnsPerRow.push({ 
+                    title: 'الإنجاز اليومي',
+                    groups: dailyGroups
+                });
+            }
+            
+            console.log('توزيع الأعمدة:', columnsPerRow);
+        }
+        
+        // === معالجة البحث ===
+        function handleSearch() {
+            const query = searchInput.value.trim();
+            
+            if (!query) {
+                showError('الرجاء إدخال الرقم التسلسلي للبحث');
+                searchResults.classList.add('hidden');
+                return;
+            }
+            
+            // البحث عن الصفوف التي تحتوي على القيمة المحددة في العمود الأول
+            const results = dataRows.filter(row => {
+                if (!row || row.length === 0) return false;
+                
+                // المقارنة مع العمود الأول (الرقم التسلسلي)
+                const firstColumn = String(row[0]).toLowerCase();
+                const searchValue = query.toLowerCase();
+                
+                return firstColumn === searchValue || firstColumn.includes(searchValue);
+            });
+            
+            // عرض النتائج
+            displayResults(results);
+        }
+        
+        // === عرض نتائج البحث ===
+        function displayResults(results) {
+            // إظهار قسم النتائج
+            searchResults.classList.remove('hidden');
+            
+            // عرض عدد النتائج
+            resultsCount.textContent = `تم العثور على ${results.length} نتيجة`;
+            
+            // إفراغ حاوية النتائج
+            resultsContainer.innerHTML = '';
+            
+            // التحقق من وجود نتائج
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<div class="status error">لم يتم العثور على نتائج مطابقة</div>';
+                return;
+            }
+            
+            // عرض كل صف من النتائج
+            results.forEach((row, rowIndex) => {
+                // إنشاء قسم للطالب الحالي
+                const studentSection = document.createElement('div');
+                studentSection.className = 'student-section';
+                
+                // رأس القسم - نعرض الرقم التسلسلي والاسم إذا كان متوفرًا
+                const studentHeader = document.createElement('div');
+                studentHeader.className = 'student-header';
+                
+                // محاولة العثور على حقل الاسم (عادة العمود الثاني)
+                let studentName = '';
+                if (row.length > 1 && row[1]) {
+                    studentName = row[1];
+                }
+                
+                // إنشاء عنصر الاسم
+                const nameElement = document.createElement('div');
+                nameElement.className = 'student-name';
+                nameElement.textContent = studentName || 'بيانات الطالب';
+                studentHeader.appendChild(nameElement);
+                
+                // إنشاء عنصر الرقم التسلسلي
+                const idElement = document.createElement('div');
+                idElement.className = 'student-id';
+                idElement.textContent = `الرقم التسلسلي: ${row[0]}`;
+                studentHeader.appendChild(idElement);
+                
+                studentSection.appendChild(studentHeader);
+                
+                // عرض البيانات حسب التوزيع المحدد
+                columnsPerRow.forEach((section) => {
+                    // إضافة عنوان القسم الرئيسي
+                    const sectionTitle = document.createElement('div');
+                    sectionTitle.className = 'section-title';
+                    sectionTitle.textContent = section.title;
+                    studentSection.appendChild(sectionTitle);
+                    
+                    // تخصيص قسم لبيانات هذا القسم
+                    const dataSection = document.createElement('div');
+                    dataSection.className = 'data-section';
+                    
+                    // عرض كل مجموعة في هذا القسم
+                    section.groups.forEach((group, groupIndex) => {
+                        // عناوين المجموعات الفرعية (اليوم الأول، اليوم الثاني، إلخ) للإنجاز اليومي فقط
+                        if (section.title === 'الإنجاز اليومي') {
+                            const dayTitle = document.createElement('div');
+                            dayTitle.className = 'day-title';
+                            dayTitle.textContent = group.title;
+                            dataSection.appendChild(dayTitle);
+                        }
+                        
+                        // إضافة مساحة للمجموعات المتعددة غير الإنجاز اليومي
+                        if (section.title !== 'الإنجاز اليومي' && groupIndex > 0) {
+                            const spacer = document.createElement('div');
+                            spacer.style.height = '15px';
+                            dataSection.appendChild(spacer);
+                        }
+                        
+                        // إنشاء جدول للمجموعة
+                        const groupTable = createGroupTable(row, group.start, group.end + 1);
+                        dataSection.appendChild(groupTable);
+                    });
+                    
+                    studentSection.appendChild(dataSection);
+                });
+                
+                // إضافة قسم الطالب إلى النتائج
+                resultsContainer.appendChild(studentSection);
+                
+                // إضافة فاصل بين النتائج إذا كان هناك أكثر من نتيجة
+                if (rowIndex < results.length - 1) {
+                    const separator = document.createElement('hr');
+                    separator.style.margin = '20px 0';
+                    resultsContainer.appendChild(separator);
+                }
+            });
+        }
+        
+        // === إنشاء جدول لمجموعة من الخلايا ===
+        function createGroupTable(row, startIndex, endIndex) {
+            const table = document.createElement('table');
+            
+            // صف العناوين
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const th = document.createElement('th');
+                th.className = 'cell-header';
+                th.textContent = getCellHeader(i);
+                headerRow.appendChild(th);
+            }
+            
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            
+            // صف البيانات
+            const tbody = document.createElement('tbody');
+            const dataRow = document.createElement('tr');
+            
+            for (let i = startIndex; i < endIndex; i++) {
+                const td = document.createElement('td');
+                const cellValue = i < row.length ? row[i] : '';
+                
+                td.textContent = cellValue;
+                td.className = 'excel-value';
+                
+                // تنسيق خاص لبعض القيم
+                if (String(cellValue).toLowerCase() === 'حاضر' || cellValue === '1' || String(cellValue).toLowerCase() === 'نعم') {
+                    td.className = 'present centered';
+                } else if (String(cellValue).toLowerCase() === 'غائب' || cellValue === '0' || String(cellValue).toLowerCase() === 'لا') {
+                    td.className = 'absent centered';
+                }
+                
+                dataRow.appendChild(td);
+            }
+            
+            tbody.appendChild(dataRow);
+            table.appendChild(tbody);
+            
+            return table;
+        }
+        
+        // === الحصول على عنوان الخلية من أول 3 صفوف ===
+        function getCellHeader(colIndex) {
+            let header = '';
+            
+            // دمج المحتوى من أول 3 صفوف (أو العدد المتاح)
+            for (let i = 0; i < headerRows.length; i++) {
+                if (colIndex < headerRows[i].length && headerRows[i][colIndex]) {
+                    if (header) header += '\n';
+                    header += headerRows[i][colIndex];
+                }
+            }
+            
+            return header || `عمود ${colIndex+1}`;
+        }
+        
+        // === تحويل الأرقام إلى الأرقام العربية ===
+        function toArabicNumerals(num) {
+            const arabicNumerals = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس', 'السابع', 'الثامن', 'التاسع', 'العاشر'];
+            return arabicNumerals[num - 1] || num.toString();
+        }
+        
+        // === وظائف عرض الحالة ===
+        function showLoading(show) {
+            loadingMessage.classList.toggle('hidden', !show);
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+        
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+        
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.classList.remove('hidden');
+            
+            // إخفاء رسالة النجاح بعد 5 ثواني
+            setTimeout(() => {
+                successMessage.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function hideSuccess() {
+            successMessage.classList.add('hidden');
+        }
+        
+        function showLastUpdate() {
+            const now = new Date();
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit' };
+            
+            const dateStr = now.toLocaleDateString('ar-SA', dateOptions);
+            const timeStr = now.toLocaleTimeString('ar-SA', timeOptions);
+            
+            lastUpdate.textContent = `آخر تحديث: ${dateStr} الساعة ${timeStr}`;
+            lastUpdate.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
