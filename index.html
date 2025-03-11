@@ -350,9 +350,6 @@
         function setupColumnDistribution() {
             columnsPerRow = [];
             
-            // تحديد المجموعات بناءً على طول البيانات
-            const totalColumns = headerRows.length > 0 ? headerRows[0].length : 0;
-            
             // البيانات الشخصية - مقسمة إلى صفين كل صف 8 خلايا
             columnsPerRow.push({ 
                 title: 'البيانات الشخصية',
@@ -362,46 +359,39 @@
                 ]
             });
             
-            // الإحصائيات الإجمالية - آخر 8 خلايا
-            const statsStart = Math.max(17, totalColumns - 5);
+            // الإحصائيات الإجمالية - آخر 5 خلايا (من 144 إلى 148)
             columnsPerRow.push({ 
                 title: 'الإحصائيات الإجمالية',
                 groups: [
-                    { start: statsStart, end: totalColumns - 1 }
+                    { start: 144, end: 148 }
                 ]
             });
             
-            // الإنجاز اليومي - المنتصف
-            if (statsStart > 17) {
-                // تقسيم الإنجاز اليومي إلى مجموعات من 7 خلايا
-                const dailyColumns = statsStart - 17;
-                const numDays = Math.ceil(dailyColumns / 7);
+            // الإنجاز اليومي - 18 صف كل صف 7 خلايا (من 18 إلى 143)
+            const dailyGroups = [];
+            
+            for (let i = 0; i < 18; i++) {
+                const start = 18 + (i * 7);
+                const end = start + 6;
                 
-                const dailyGroups = [];
-                
-                for (let i = 0; i < numDays; i++) {
-                    const start = 17 + (i * 7);
-                    const end = Math.min(start + 6, statsStart - 1);
-                    
-                    let title = '';
-                    if (i === numDays - 1) {
-                        title = 'الاختبار';
-                    } else {
-                        title = `اليوم ${toArabicNumerals(i + 1)}`;
-                    }
-                    
-                    dailyGroups.push({ start, end, title });
+                let title = '';
+                if (i === 17) {
+                    title = 'الاختبار';
+                } else {
+                    title = `اليوم ${toArabicNumerals(i + 1)}`;
                 }
                 
-                columnsPerRow.push({ 
-                    title: 'الإنجاز اليومي',
-                    groups: dailyGroups
-                });
+                dailyGroups.push({ start, end, title });
             }
+            
+            columnsPerRow.push({ 
+                title: 'الإنجاز اليومي',
+                groups: dailyGroups
+            });
             
             console.log('توزيع الأعمدة:', columnsPerRow);
         }
-        
+                
         // === معالجة البحث ===
         function handleSearch() {
             const query = searchInput.value.trim();
