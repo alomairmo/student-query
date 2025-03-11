@@ -363,15 +363,15 @@
             columnsPerRow.push({ 
                 title: 'الإحصائيات الإجمالية',
                 groups: [
-                    { start: 143, end: 147 }
+                    { start: 143, end: 148 }
                 ]
             });
             
             // الإنجاز اليومي - 18 صف كل صف 7 خلايا (من 18 إلى 143)
             const dailyGroups = [];
             
-            for (let i = 0; i < 18; i++) {
-                const start = 18 + (i * 7);
+            for (let i = 0; i < 17; i++) {
+                const start = 17 + (i * 7);
                 const end = start + 6;
                 
                 let title = '';
