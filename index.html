@@ -363,7 +363,7 @@
             });
             
             // الإحصائيات الإجمالية - آخر 8 خلايا
-            const statsStart = Math.max(17, totalColumns - 12);
+            const statsStart = Math.max(17, totalColumns - 5);
             columnsPerRow.push({ 
                 title: 'الإحصائيات الإجمالية',
                 groups: [
@@ -417,10 +417,7 @@
                 if (!row || row.length === 0) return false;
                 
                 // المقارنة مع العمود الأول (الرقم التسلسلي)
-                const firstColumn = String(row[0]).toLowerCase();
-                const searchValue = query.toLowerCase();
-                
-                return firstColumn === searchValue || firstColumn.includes(searchValue);
+                return String(row[0]) === query;
             });
             
             // عرض النتائج
